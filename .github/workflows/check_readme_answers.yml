@@ -27,6 +27,13 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
+      - name: Decrypt large secret
+        run: |
+          chmod +x check_questions.sh
+          ./decrypt_answers.sh
+        env:
+          ANSWERS_SECRET_PASSPHRASE: ${{ secrets.ANSWERS_SECRET_PASSPHRASE }}
+
       # Runs a set of commands using the runners shell
       - name: Run check script script
         run: |
