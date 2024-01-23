@@ -20,8 +20,15 @@ check_question() {
   # Count correctly checked answers
   correct_count=$(grep -i "\\[X\] $correct_answer_pattern" <<< "$student_q_response" | wc -l)
 
-  # Calculate score (1 for correct, 0 for incorrect)
-  score=$((correct_count))
+  # Count all checked answers (including extras)
+  checked_count=$(grep -i "\[X\]" <<< "$student_q_response" | wc -l)
+
+  # Calculate score (1 for correct, -1 for extra)
+  score=$((correct_count - (checked_count - correct_count)))
+  score=$((score < 0 ? 0 : score))  # Apply conditional check for non-negative score
+
+  # # Calculate score (1 for correct, 0 for incorrect)
+  # score=$((correct_count))
 
   total_score=$((total_score + score))
 
