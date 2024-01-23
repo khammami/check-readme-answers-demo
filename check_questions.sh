@@ -63,5 +63,6 @@ for i in "${!questions[@]}"; do
 done
 
 echo "Total Score: $total_score"
+echo "Total Ques.: ${#questions[@]}"
 
 exit 0
