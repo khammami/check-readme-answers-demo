@@ -35,7 +35,7 @@ check_question() {
 
   echo "Question: $question_text"
   echo "Correct answer(s): $correct_answer_pattern"
-  echo "Student response: $student_q_response"
+  echo -e "Student response:\n$student_q_response"
   echo "Score: $score"
   echo ""
 }
