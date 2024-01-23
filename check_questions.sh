@@ -9,6 +9,7 @@ check_question() {
   local student_response="$3"
 
   student_q_response=$(grep -A 5 ".*$question_text" <<< "$student_response")
+  student_q_response=$(grep -i "\[X\]" <<< "$student_q_response")
 
   # Check for empty response
   if [[ -z "$student_q_response" ]]; then
@@ -54,6 +55,8 @@ IFS=$'\n'
 readarray -t questions < questions.txt
 readarray -t answers < answers.txt
 
+nbQuestions=${#questions[@]}
+
 # Read the student responses from the README.md file
 student_responses=$(grep -A 5 ".* Choisissez-en un" README.md)
 
@@ -62,7 +65,13 @@ for i in "${!questions[@]}"; do
   check_question "${questions[$i]}" "${answers[$i]}" "$student_responses"
 done
 
+
 echo "Total Score: $total_score"
-echo "Total Ques.: ${#questions[@]}"
+echo "Total Ques.: ${nbQuestions}"
+
+# echo "rdme-score=${total_score}\n" >> $GITHUB_OUTPUT
+# echo "var_name: rdme-score"
+# echo "rdme-questions=${nbQuestions}\n" >> $GITHUB_OUTPUT
+# echo "var-name: rdme-questions"
 
 exit 0
