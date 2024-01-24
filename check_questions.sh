@@ -7,15 +7,25 @@ check_question() {
   local question_text="$1"
   local correct_answer_pattern="$2"
   local student_response="$3"
+  local exit_on_fail="$4"
 
   student_q_response=$(grep -A 5 ".*$question_text" <<< "$student_response")
   student_q_response=$(grep -i "\[X\]" <<< "$student_q_response")
+
+  # Init exit_on_fail to false
+  if [[ -z "$exit_on_fail" ]]; then
+    exit_on_fail=false
+  fi
 
   # Check for empty response
   if [[ -z "$student_q_response" ]]; then
     echo "Question $question_text: Aucune réponse"
     score=0
-    return
+    if [ "$exit_on_fail" = true ] ; then
+      exit 1
+    else
+      return
+    fi
   fi
 
   # Count correctly checked answers
@@ -31,13 +41,17 @@ check_question() {
   # # Calculate score (1 for correct, 0 for incorrect)
   # score=$((correct_count))
 
-  total_score=$((total_score + score))
-
   echo "Question: $question_text"
   echo "Correct answer(s): $correct_answer_pattern"
   echo -e "Student response:\n$student_q_response"
   echo "Score: $score"
   echo ""
+
+  if [ "$exit_on_fail" = true ] && [ "$score" -eq 0 ] ; then
+    exit 1
+  fi
+
+  total_score=$((total_score + score))
 }
 
 # Define questions and answers
@@ -60,14 +74,33 @@ nbQuestions=${#questions[@]}
 # Read the student responses from the README.md file
 student_responses=$(grep -A 5 ".* Choisissez-en un" README.md)
 
-# Loop through each question and grade
-for i in "${!questions[@]}"; do
-  check_question "${questions[$i]}" "${answers[$i]}" "$student_responses"
-done
 
+if [ $# -eq 0 ];
+then
+  # Loop through each question and grade
+  for i in "${!questions[@]}"; do
+    check_question "${questions[$i]}" "${answers[$i]}" "$student_responses"
+  done
 
-echo "Total Score: $total_score"
-echo "Total Ques.: ${nbQuestions}"
+  echo "==========================="
+  echo "Total Score.........: $total_score"
+  echo "Total Questions.....: ${nbQuestions}"
+  echo "==========================="
+
+  exit 0
+elif [ $# -gt 2 ];
+then
+  echo "$0: Too many arguments: $@"
+  exit 1
+else
+  if [ "$1" -eq 0 ] ; then
+    echo "Question number should start from 1"
+    exit 1
+  fi
+  question_number=$1-1
+  check_question "${questions[$question_number]}" "${answers[$question_number]}" "$student_responses" true
+fi
+
 
 # echo "rdme-score=${total_score}\n" >> $GITHUB_OUTPUT
 # echo "var_name: rdme-score"
