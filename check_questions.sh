@@ -9,8 +9,8 @@ check_question() {
   local student_response="$3"
   local exit_on_fail="$4"
 
-  student_q_response=$(grep -A 5 ".*$question_text" <<< "$student_response")
-  student_q_response=$(grep -i "\[X\]" <<< "$student_q_response")
+  student_q_response=$(grep -A 5 ".*$question_text" <<<"$student_response")
+  student_q_response=$(grep -i "\[X\]" <<<"$student_q_response")
 
   # Init exit_on_fail to false
   if [[ -z "$exit_on_fail" ]]; then
@@ -21,7 +21,7 @@ check_question() {
   if [[ -z "$student_q_response" ]]; then
     echo "Question $question_text: Aucune réponse"
     score=0
-    if [ "$exit_on_fail" = true ] ; then
+    if [ "$exit_on_fail" = true ]; then
       exit 1
     else
       return
@@ -29,14 +29,14 @@ check_question() {
   fi
 
   # Count correctly checked answers
-  correct_count=$(grep -i "\\[X\] $correct_answer_pattern" <<< "$student_q_response" | wc -l)
+  correct_count=$(grep -i "\\[X\] $correct_answer_pattern" <<<"$student_q_response" | wc -l)
 
   # Count all checked answers (including extras)
-  checked_count=$(grep -i "\[X\]" <<< "$student_q_response" | wc -l)
+  checked_count=$(grep -i "\[X\]" <<<"$student_q_response" | wc -l)
 
   # Calculate score (1 for correct, -1 for extra)
   score=$((correct_count - (checked_count - correct_count)))
-  score=$((score < 0 ? 0 : score))  # Apply conditional check for non-negative score
+  score=$((score < 0 ? 0 : score)) # Apply conditional check for non-negative score
 
   # # Calculate score (1 for correct, 0 for incorrect)
   # score=$((correct_count))
@@ -47,7 +47,7 @@ check_question() {
   echo "Score: $score"
   echo ""
 
-  if [ "$exit_on_fail" = true ] && [ "$score" -eq 0 ] ; then
+  if [ "$exit_on_fail" = true ] && [ "$score" -eq 0 ]; then
     exit 1
   fi
 
@@ -66,17 +66,15 @@ check_question() {
 # )
 
 IFS=$'\n'
-readarray -t questions < questions.txt
-readarray -t answers < answers.txt
+readarray -t questions <questions.txt
+readarray -t answers <answers.txt
 
 nbQuestions=${#questions[@]}
 
 # Read the student responses from the README.md file
 student_responses=$(grep -A 5 ".* Choisissez-en un" README.md)
 
-
-if [ $# -eq 0 ];
-then
+if [ $# -eq 0 ]; then
   # Loop through each question and grade
   for i in "${!questions[@]}"; do
     check_question "${questions[$i]}" "${answers[$i]}" "$student_responses"
@@ -88,19 +86,17 @@ then
   echo "==========================="
 
   exit 0
-elif [ $# -gt 2 ];
-then
-  echo "$0: Too many arguments: $@"
+elif [ $# -gt 2 ]; then
+  echo "$0: Too many arguments: $*"
   exit 1
 else
-  if [ "$1" -eq 0 ] ; then
+  if [ "$1" -eq 0 ]; then
     echo "Question number should start from 1"
     exit 1
   fi
   question_number=$1-1
   check_question "${questions[$question_number]}" "${answers[$question_number]}" "$student_responses" true
 fi
-
 
 # echo "rdme-score=${total_score}\n" >> $GITHUB_OUTPUT
 # echo "var_name: rdme-score"
