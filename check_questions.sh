@@ -9,8 +9,8 @@ check_question() {
   local student_response="$3"
   local exit_on_fail="$4"
 
-  student_q_response=$(grep -A 5 ".*$question_text" <<<"$student_response")
-  student_q_response=$(grep -i "\[X\]" <<<"$student_q_response")
+  # Pre-process student response to extract relevant lines
+  student_q_response=$(grep -A 5 ".*$question_text" <<<"$student_response" | grep -i "\[X\]")
 
   # Init exit_on_fail to false
   if [[ -z "$exit_on_fail" ]]; then
@@ -21,33 +21,30 @@ check_question() {
   if [[ -z "$student_q_response" ]]; then
     echo "Question $question_text: Aucune réponse"
     score=0
-    if [ "$exit_on_fail" = true ]; then
+    if [[ "$exit_on_fail" = true ]]; then
       exit 1
     else
       return
     fi
   fi
 
-  # Count correctly checked answers
-  correct_count=$(grep -i "\\[X\] $correct_answer_pattern" <<<"$student_q_response" | wc -l)
+  # Count correctly checked answers using a more efficient method
+  correct_count=$(grep -c "\\[X\] $correct_answer_pattern" <<<"$student_q_response")
 
   # Count all checked answers (including extras)
-  checked_count=$(grep -i "\[X\]" <<<"$student_q_response" | wc -l)
+  checked_count=$(grep -c "\[X\]" <<<"$student_q_response")
 
   # Calculate score (1 for correct, -1 for extra)
   score=$((correct_count - (checked_count - correct_count)))
-  score=$((score < 0 ? 0 : score)) # Apply conditional check for non-negative score
-
-  # # Calculate score (1 for correct, 0 for incorrect)
-  # score=$((correct_count))
+  score=$((score < 0 ? 0 : score))  # Ensure non-negative score
 
   echo "Question: $question_text"
   echo "Correct answer(s): $correct_answer_pattern"
-  echo -e "Student response:\n$student_q_response"
+  echo -e "Student response(s):\n$student_q_response"
   echo "Score: $score"
   echo ""
 
-  if [ "$exit_on_fail" = true ] && [ "$score" -eq 0 ]; then
+  if [[ "$exit_on_fail" = true ]] && [[ "$score" -eq 0 ]]; then
     exit 1
   fi
 
