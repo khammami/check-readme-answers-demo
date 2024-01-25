@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Q5",
+      "setup": "./decrypt_answers.sh",
+      "run": "./check_questions.sh 5",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    }
+  ]
+}
