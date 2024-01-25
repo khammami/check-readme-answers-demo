@@ -2,7 +2,7 @@
   "tests": [
     {
       "name": "Q5",
-      "setup": "./decrypt_answers.sh",
+      "setup": ". ./setenv.sh && ./decrypt_answers.sh",
       "run": "./check_questions.sh 5",
       "input": "",
       "output": "",

@@ -16,4 +16,13 @@ jobs:
     if: github.actor != 'github-classroom[bot]'
     steps:
       - uses: actions/checkout@v4
+      - name: Create file for setting env vars
+        # https://github.com/education/autograding/issues/69#issuecomment-1497674655
+        # https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#using-secrets-in-a-workflow
+        env:
+          ANSWERS_SECRET_PASSPHRASE: ${{ secrets.ANSWERS_SECRET_PASSPHRASE }}
+        run: |
+          echo "#!/bin/sh" > setenv.sh
+          echo "export ANSWERS_SECRET_PASSPHRASE=\"$ANSWERS_SECRET_PASSPHRASE\"" >> setenv.sh
+          chmod +x setenv.sh
       - uses: education/autograding@v1
