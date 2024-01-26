@@ -105,8 +105,8 @@ else
     echo "Question number should start from 1"
     exit 1
   fi
-  question_number=$1-1
-  check_question "${question_number}" "${answers[$question_number]}" "$student_responses" true
+
+  check_question "$1" "${answers[$(( $1 - 1 ))]}" "$student_responses" true
 fi
 
 # echo "rdme-score=${total_score}\n" >> $GITHUB_OUTPUT
