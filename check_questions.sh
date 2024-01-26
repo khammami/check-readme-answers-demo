@@ -29,14 +29,28 @@ check_question() {
   fi
 
   # Count correctly checked answers using a more efficient method
-  correct_count=$(grep -c "\\[X\] $correct_answer_pattern" <<<"$student_q_response")
+  correct_count=$(grep -E -c "\[X\] \*\*\(($correct_answer_pattern)\)\*\*" <<<"$student_q_response")
 
   # Count all checked answers (including extras)
   checked_count=$(grep -c "\[X\]" <<<"$student_q_response")
 
+  # Count all possible correct answers
+  all_correct_count=$(echo "$correct_answer_pattern" | tr "|" "\n" | wc -l)
+  # score_step=$((all_correct_count > 1 ? 1/all_correct_count : 1))
+  # score_step=$(echo "scale=2; 1 / $all_correct_count" | bc)
+
   # Calculate score (1 for correct, -1 for extra)
   score=$((correct_count - (checked_count - correct_count)))
   score=$((score < 0 ? 0 : score))  # Ensure non-negative score
+  
+  if [[ $score -gt 1 && $score -eq $all_correct_count ]]; then
+    score=1
+  else
+    if [[ $score -ne 1 ]]; then  # Only change score if it wasn't already 1
+      score=0
+    fi
+  fi
+
 
   echo "Question: $question_text"
   echo "Correct answer(s): $correct_answer_pattern"
@@ -63,18 +77,18 @@ check_question() {
 # )
 
 IFS=$'\n'
-readarray -t questions <questions.txt
 readarray -t answers <answers.txt
 
-nbQuestions=${#questions[@]}
+nbQuestions=${#answers[@]}
 
 # Read the student responses from the README.md file
-student_responses=$(grep -A 5 ".* Choisissez-en un" README.md)
+student_responses=$(grep -i -E -A 5 "\*\*A[0-9]+\.\*\*.*\:$" README.md)
 
 if [ $# -eq 0 ]; then
   # Loop through each question and grade
-  for i in "${!questions[@]}"; do
-    check_question "${questions[$i]}" "${answers[$i]}" "$student_responses"
+  for i in "${!answers[@]}"; do
+    qnbr=$((i + 1))
+    check_question "${qnbr}" "${answers[$i]}" "$student_responses"
   done
 
   echo "==========================="
@@ -92,7 +106,7 @@ else
     exit 1
   fi
   question_number=$1-1
-  check_question "${questions[$question_number]}" "${answers[$question_number]}" "$student_responses" true
+  check_question "${question_number}" "${answers[$question_number]}" "$student_responses" true
 fi
 
 # echo "rdme-score=${total_score}\n" >> $GITHUB_OUTPUT
