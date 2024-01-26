@@ -1,16 +1,20 @@
 #!/bin/bash
 
+readme_path="README.md"
 total_score=0
 
 # Function to check and grade a single question
 check_question() {
-  local question_text="$1"
+  local question_nbr="$1"
   local correct_answer_pattern="$2"
   local student_response="$3"
   local exit_on_fail="$4"
 
+  # Extract question
+  question_text=$(grep -i -E "\*\*Q$question_nbr\.\*\*.*\?$" ${readme_path})
+
   # Pre-process student response to extract relevant lines
-  student_q_response=$(grep -A 5 ".*$question_text" <<<"$student_response" | grep -i "\[X\]")
+  student_q_response=$(grep -A 5 ".*$question_nbr" <<<"$student_response" | grep -i "\[X\]")
 
   # Init exit_on_fail to false
   if [[ -z "$exit_on_fail" ]]; then
@@ -19,7 +23,7 @@ check_question() {
 
   # Check for empty response
   if [[ -z "$student_q_response" ]]; then
-    echo "Question $question_text: Aucune réponse"
+    echo "Question $question_nbr: Aucune réponse"
     score=0
     if [[ "$exit_on_fail" = true ]]; then
       exit 1
@@ -52,11 +56,12 @@ check_question() {
   fi
 
 
-  echo "Question: $question_text"
-  echo "Correct answer(s): $correct_answer_pattern"
-  echo -e "Student response(s):\n$student_q_response"
-  echo "Score: $score"
-  echo ""
+  echo "###########################"
+  echo -e "Question: $question_nbr \n$question_text"
+  echo -e "\nCorrect answer(s): $correct_answer_pattern" #just for demo
+  echo -e "\nStudent response(s):\n$student_q_response"
+  echo -e "\nScore: $score"
+  echo "###########################"
 
   if [[ "$exit_on_fail" = true ]] && [[ "$score" -eq 0 ]]; then
     exit 1
@@ -82,7 +87,7 @@ readarray -t answers <answers.txt
 nbQuestions=${#answers[@]}
 
 # Read the student responses from the README.md file
-student_responses=$(grep -i -E -A 5 "\*\*A[0-9]+\.\*\*.*\:$" README.md)
+student_responses=$(grep -i -E -A 5 "\*\*A[0-9]+\.\*\*.*\:$" ${readme_path})
 
 if [ $# -eq 0 ]; then
   # Loop through each question and grade
